@@ -1,0 +1,5 @@
+add_library(net transport.cpp tcp_transport.cpp ssl_transport.cpp)
+target_include_directories(net PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_include_directories(net INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>)
+target_link_libraries(net PUBLIC Boost::boost Boost::system Boost::coroutine OpenSSL::SSL)
+add_library(site-archive::net ALIAS net)
