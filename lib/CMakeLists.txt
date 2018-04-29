@@ -1,6 +1,6 @@
-add_library(downloader worker.cpp archiver.cpp http_client.cpp job_manager.cpp)
+add_library(downloader worker.cpp archiver.cpp http_client.cpp job_manager.cpp log.cpp)
 target_link_libraries(downloader PUBLIC site-archive::net)
-target_link_libraries(downloader PUBLIC Boost::boost Boost::system Boost::coroutine Threads::Threads)
+target_link_libraries(downloader PUBLIC Boost::boost Boost::system Boost::coroutine Threads::Threads PkgConfig::libcrypto++ stdc++fs)
 target_include_directories(downloader PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 add_library(site-archive::downloader ALIAS downloader)
 

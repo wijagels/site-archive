@@ -1,6 +1,7 @@
 #include "job_manager.hpp"
 
 #include <boost/asio.hpp>
+#include <boost/asio/spawn.hpp>
 
 #include <iostream>
 
@@ -9,17 +10,20 @@ namespace asio = boost::asio;
 
 int main() {
   boost::asio::io_context ioc;
-  boost::asio::thread_pool tp;
+  boost::asio::io_context::strand strand{ioc};
+  boost::asio::thread_pool tp{8};
 
   auto manager = std::make_shared<JobManager>(ioc);
-  for (auto n = 0; n < 1e2; ++n) {
+  for (auto n = 0; n < 1e6; ++n) {
     asio::spawn(ioc, [=](auto yield) {
       boost::system::error_code ec;
       auto work = manager->get_work(yield[ec]);
-      if (ec)
-        std::cout << ec.message() << '\n';
-      else
-        std::cout << work << '\n';
+      boost::asio::dispatch(strand, [=]() {
+        if (ec)
+          std::cout << ec.message() << '\n';
+        else
+          std::cout << work << '\n';
+      });
     });
     // boost::asio::post(ioc, [=]() {
     //   boost::system::error_code ec;
@@ -32,10 +36,10 @@ int main() {
     // });
   }
 
-  boost::asio::post(tp, [&]() { ioc.run(); });
+  for (auto i = 0; i < 8; i++) boost::asio::post(tp, [&]() { ioc.run(); });
 
-  for (auto n = 0; n < 1e2; ++n) {
-    manager->add_work({"hello" + std::to_string(n)});
+  for (auto n = 0; n < 1e6; ++n) {
+    manager->add_work({"hello " + std::to_string(n)});
   }
   tp.join();
 }

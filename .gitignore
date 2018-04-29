@@ -35,6 +35,7 @@
 build/
 clang/
 release/
+reldebug/
 
 # YCM config
 .ycm_extra_conf.py

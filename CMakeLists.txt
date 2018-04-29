@@ -9,11 +9,10 @@ add_compile_options(-Wall -Wextra -pedantic -Wcast-align -Wcast-qual -Wctor-dtor
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING -DASIO_NO_DEPRECATED)
 
-add_executable(main main.cpp)
-target_link_libraries(main PUBLIC site-archive::downloader)
-
+find_package(PkgConfig REQUIRED)
 find_package(Boost 1.66 REQUIRED COMPONENTS system coroutine)
 find_package(OpenSSL REQUIRED)
+pkg_check_modules(libcrypto++ REQUIRED IMPORTED_TARGET libcrypto++)
 
 find_package(Threads REQUIRED)
 
