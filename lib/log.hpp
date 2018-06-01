@@ -7,7 +7,6 @@
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/hana/define_struct.hpp>
 
-#include <array>
 #include <cstdint>
 #include <fstream>
 #include <iosfwd>

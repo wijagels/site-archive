@@ -26,7 +26,6 @@ int main() {
       });
     });
     // boost::asio::post(ioc, [=]() {
-    //   boost::system::error_code ec;
     //   manager->get_work([](boost::system::error_code ec, const std::string &y) {
     //     if (ec)
     //       std::cout << ec.message() << '\n';

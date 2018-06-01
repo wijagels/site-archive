@@ -17,19 +17,19 @@ SslTransport::SslTransport(boost::asio::io_context &io_ctx)
   m_ssl_stream.set_verify_mode(ssl::verify_peer);
 }
 
-void SslTransport::connect(const std::string &addr, const std::string &service, error_callback on_connect) {
-  m_ssl_stream.set_verify_callback(ssl::rfc2818_verification{addr});
-  m_resolver.async_resolve({addr, service}, [this, on_connect = std::move(on_connect),
-                                             self = shared_from_this()](boost::system::error_code ec,
-                                                                        const tcp::resolver::results_type &results) {
-    return on_resolve(ec, results, std::move(on_connect));
-  });
+void SslTransport::connect(std::string_view addr, std::string_view service, error_callback on_connect) {
+  m_ssl_stream.set_verify_callback(ssl::rfc2818_verification{std::string{addr}});
+  m_resolver.async_resolve(addr, service,
+                           [this, on_connect = std::move(on_connect)](boost::system::error_code ec,
+                                                                      const tcp::resolver::results_type &results) {
+                             return on_resolve(ec, results, std::move(on_connect));
+                           });
 }
 
-void SslTransport::connect(const std::string &addr, const std::string &service, boost::asio::yield_context yield) {
-  m_ssl_stream.set_verify_callback(ssl::rfc2818_verification{addr});
+void SslTransport::connect(std::string_view addr, std::string_view service, boost::asio::yield_context yield) {
+  m_ssl_stream.set_verify_callback(ssl::rfc2818_verification{std::string{addr}});
   boost::system::error_code ec;
-  auto results = m_resolver.async_resolve({addr, service}, yield[ec]);
+  auto results = m_resolver.async_resolve(addr, service, yield[ec]);
   if (ec) return;
   asio::async_connect(m_socket, results, yield[ec]);
   if (ec) return;
@@ -40,11 +40,10 @@ void SslTransport::on_resolve(boost::system::error_code ec, const tcp::resolver:
                               error_callback on_connect) {
   if (!ec) {
     asio::async_connect(m_socket, results,
-                        [this, on_connect = std::move(on_connect), self = shared_from_this()](auto connect_ec,
-                                                                                              auto /*endpoint*/) {
+                        [this, on_connect = std::move(on_connect)](auto connect_ec, auto /*endpoint*/) {
                           if (!connect_ec)
                             return m_ssl_stream.async_handshake(decltype(m_ssl_stream)::client,
-                                                                [self, on_connect = std::move(on_connect)](
+                                                                [on_connect = std::move(on_connect)](
                                                                     auto handshake_ec) { on_connect(handshake_ec); });
                           return on_connect(connect_ec);
                         });
@@ -54,7 +53,7 @@ void SslTransport::on_resolve(boost::system::error_code ec, const tcp::resolver:
 }
 
 void SslTransport::shutdown(error_callback on_shutdown) {
-  m_ssl_stream.async_shutdown([this, on_shutdown = std::move(on_shutdown), self = shared_from_this()](auto ec) {
+  m_ssl_stream.async_shutdown([this, on_shutdown = std::move(on_shutdown)](auto ec) {
     if (ec == boost::asio::error::eof) {
       ec.assign(0, ec.category());
     }

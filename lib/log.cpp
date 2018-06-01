@@ -30,7 +30,7 @@ static std::istream &deserialize(std::istream &is, T &e) {
   std::string line;
   is >> line;
   boost::split(tok, line, boost::is_any_of("|"));
-  constexpr size_t data_members = hana::size(hana::keys(e));
+  size_t data_members = hana::size(hana::keys(e));
   if (tok.size() != data_members) throw std::runtime_error{"Invalid log line: " + line};
   size_t i = 0;
   hana::for_each(hana::accessors<T>(), [&](auto &&p) {

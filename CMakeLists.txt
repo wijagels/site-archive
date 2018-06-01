@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-Wall -Wextra -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-overflow=5 -Wundef -Wswitch-default -fno-omit-frame-pointer)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
-add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING -DASIO_NO_DEPRECATED)
+add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING -DBOOST_ASIO_NO_DEPRECATED -DBOOST_ASIO_HAS_STD_STRING_VIEW)
 
 find_package(PkgConfig REQUIRED)
 find_package(Boost 1.66 REQUIRED COMPONENTS system coroutine)

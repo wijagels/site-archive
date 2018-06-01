@@ -1,17 +1,14 @@
 #pragma once
-#include <boost/asio/bind_executor.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/post.hpp>
-#include <boost/asio/steady_timer.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 
-#include <chrono>
 #include <deque>
-#include <memory>
-#include <optional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace site_archive::downloader {
@@ -21,6 +18,11 @@ class JobManager {
 
  public:
   JobManager(boost::asio::io_context &io_ctx);
+  ~JobManager() = default;
+  JobManager(const JobManager &) = delete;
+  JobManager(JobManager &&) = delete;
+  JobManager &operator=(const JobManager &) = delete;
+  JobManager &operator=(JobManager &&) = delete;
 
   void add_work(std::vector<std::string> &&work);
 
@@ -37,7 +39,7 @@ class JobManager {
   boost::asio::io_context &m_io_ctx;
   boost::asio::io_context::strand m_strand;
   std::unordered_set<std::string> m_seen;
-  std::deque<std::reference_wrapper<const std::string>> m_pending;
+  std::deque<std::string> m_pending;
   template <typename Handler>
   struct JobFetcher;
 };
@@ -47,7 +49,7 @@ struct JobManager::JobFetcher {
   struct State {
     explicit State(const Handler &, JobManager &manager) : m_manager{manager}, m_timer{manager.m_io_ctx} {}
     JobManager &m_manager;
-    boost::asio::steady_timer m_timer;
+    boost::asio::deadline_timer m_timer;
   };
   template <typename DeducedHandler>
   JobFetcher(JobManager &manager, DeducedHandler &&handler) : m_p{std::forward<DeducedHandler>(handler), manager} {}
@@ -64,12 +66,11 @@ struct JobManager::JobFetcher {
     if (ec) return m_p.invoke(ec, result_type{});
     State &state = *m_p;
     if (!state.m_manager.m_pending.empty()) {
-      auto str = state.m_manager.m_pending.front().get();
+      auto str = std::move(state.m_manager.m_pending.front());
       state.m_manager.m_pending.pop_front();
-      m_p.invoke(ec, str);
-      return;
+      return m_p.invoke(ec, std::move(str));
     } else {
-      state.m_timer.expires_from_now(std::chrono::milliseconds{5});
+      state.m_timer.expires_from_now(boost::posix_time::milliseconds{100});
       return state.m_timer.async_wait(std::move(*this));
     }
   }

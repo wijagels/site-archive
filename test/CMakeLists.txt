@@ -8,3 +8,6 @@ target_link_libraries(jobs PRIVATE site-archive::downloader)
 
 add_executable(log log.cpp)
 target_link_libraries(log PRIVATE site-archive::downloader)
+
+add_executable(dl dl.cpp)
+target_link_libraries(dl PRIVATE site-archive::downloader)

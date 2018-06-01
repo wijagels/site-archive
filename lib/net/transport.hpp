@@ -1,17 +1,15 @@
 #pragma once
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 #include <functional>
-#include <memory>
 
 namespace site_archive::net {
 /**
  * Common class for tcp based network transports
  * Not intended for polymorphic use
  */
-class Transport : public std::enable_shared_from_this<Transport> {
+class Transport {
  protected:
   using error_callback = std::function<void(boost::system::error_code)>;
 

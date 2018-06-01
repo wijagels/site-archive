@@ -5,14 +5,14 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
 
-#include <string>
+#include <string_view>
 
 namespace site_archive::net {
 class SslTransport final : Transport {
  public:
   SslTransport(boost::asio::io_context &io_ctx);
-  void connect(const std::string &addr, const std::string &service, error_callback on_connect);
-  void connect(const std::string &addr, const std::string &service, boost::asio::yield_context yield);
+  void connect(std::string_view addr, std::string_view service, error_callback on_connect);
+  void connect(std::string_view addr, std::string_view service, boost::asio::yield_context yield);
   void shutdown(error_callback on_shutdown);
   template <typename B, typename T>
   auto async_read_some(B &&mb, T &&t) {
@@ -22,7 +22,7 @@ class SslTransport final : Transport {
   auto async_write_some(B &&cb, T &&t) {
     return m_ssl_stream.async_write_some(std::forward<B>(cb), std::forward<T>(t));
   }
-  auto &get_executor() { return m_io_ctx; }
+  auto get_executor() noexcept { return m_socket.get_executor(); }
 
  private:
   void on_resolve(boost::system::error_code ec, const boost::asio::ip::tcp::resolver::results_type &results,
